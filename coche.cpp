@@ -1,6 +1,8 @@
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
+#include <time.h>
+#include <thread>
 
 #define Izquierda 75
 #define Derecha 77
@@ -66,7 +68,7 @@ class Escenario : public ContraladorConsola
     Escenario(int nuevoLargo, int nuevoAncho);
     void dibujaEscenario();
     void animaEscenario();
-    void detectarColision(Coche coche, CocheEnemigo cocheEnemigo); //Obtener las coordenadas de cada elemento y comparar si son iguales
+    //void detectarColision(Coche &coche, CocheEnemigo &cocheEnemigo); //Obtener las coordenadas de cada elemento y comparar si son iguales
 };
 
 Escenario::Escenario(int xLargo, int yAncho) : ContraladorConsola()
@@ -109,60 +111,72 @@ void Escenario::animaEscenario()
     int x1 = 0, x2 = anchoEscenario - 1, x3 = x2 / 2;
     char caracter1, caracter2, caracter3;
 
+    //!!Inicializa el Escenario largo y ancho y lo dibuja
+    this->anchoEscenario = 22;
+    this->largoEscenario = 12;
+    this->OcultaCursor();
+    this->dibujaEscenario();
     //anima orillas de la carretera
-    for (int y = 0; y < largoEscenario; y++)
+    while (true)
     {
 
-        this->situaCoordenada(x1, y);
-        caracter1 = this->obtieneCaracterConsola(x1, y);
-        this->situaCoordenada(x2, y);
-        caracter2 = this->obtieneCaracterConsola(x2, y);
-        if (caracter1 == '|' && caracter2 == '|')
+        for (int y = 0; y < largoEscenario; y++)
         {
+
             this->situaCoordenada(x1, y);
-            cout << " ";
+            caracter1 = this->obtieneCaracterConsola(x1, y);
             this->situaCoordenada(x2, y);
-            cout << " ";
-            Sleep(20); // velocidad de desplazamiento
+            caracter2 = this->obtieneCaracterConsola(x2, y);
+            if (caracter1 == '|' && caracter2 == '|')
+            {
+                this->situaCoordenada(x1, y);
+                cout << ' ';
+                this->situaCoordenada(x2, y);
+                cout << ' ';
+                //Sleep(100); // velocidad de desplazamiento
+            }
+            else
+            {
+                this->situaCoordenada(x1, y);
+                cout << "|";
+                this->situaCoordenada(x2, y);
+                cout << "|";
+            }
         }
-        else
-        {
-            this->situaCoordenada(x1, y);
-            cout << "|";
-            this->situaCoordenada(x2, y);
-            cout << "|";
-        }
-    }
-    for (int y = 0; y < largoEscenario; y += 4)
-    {
-        this->situaCoordenada(x3, y);
-        caracter3 = this->obtieneCaracterConsola(x3, y);
-        if (caracter3 == ':')
+        //Dibuja lineas pintadas en el centro
+        for (int y = 0; y < largoEscenario; y += 4)
         {
             this->situaCoordenada(x3, y);
-            cout << " ";
-            this->situaCoordenada(x3 + 1, y);
-            cout << " ";
+            caracter3 = this->obtieneCaracterConsola(x3, y);
+            if (caracter3 == ':')
+            {
+                this->situaCoordenada(x3, y);
+                cout << " ";
+                this->situaCoordenada(x3 + 1, y);
+                cout << " ";
 
-            this->situaCoordenada(x3, y + 1);
-            cout << " ";
-            this->situaCoordenada(x3 + 1, y + 1);
-            cout << " ";
-            Sleep(300); // control de velocidad de las lineas
-        }
-        else
-        {
-            this->situaCoordenada(x3, y);
-            cout << ":";
-            this->situaCoordenada(x3 + 1, y);
-            cout << ":";
+                this->situaCoordenada(x3, y + 1);
+                cout << " ";
+                this->situaCoordenada(x3 + 1, y + 1);
+                cout << " ";
+                Sleep(200); // control de velocidad de las lineas
+            }
+            else
+            {
+                this->situaCoordenada(x3, y);
+                cout << ":";
+                this->situaCoordenada(x3 + 1, y);
+                cout << ":";
 
-            this->situaCoordenada(x3, y + 1);
-            cout << ":";
-            this->situaCoordenada(x3 + 1, y + 1);
-            cout << ":";
-            Sleep(300); // control de velocidad de las lineas
+                this->situaCoordenada(x3, y + 1);
+                cout << ":";
+                this->situaCoordenada(x3 + 1, y + 1);
+                cout << ":";
+                Sleep(200); // control de velocidad de las lineas
+            }
         }
+        //Sleep(300);
+        //fflush(stdout); // Línea agregada 11/01/2019
     }
 }
 
@@ -262,99 +276,199 @@ void Coche::explotaCoche()
 
 void Coche::moverCoche()
 {
-    if (kbhit() == true)
+    while (true) // Linea agregada 11/01/2019
     {
-        char teclaPresionada = getch();
-        switch (teclaPresionada)
+        if (kbhit() == true)
         {
-        case 'a':
-        {
-            if (this->posicionX > 1)
+            char teclaPresionada = getch();
+            switch (teclaPresionada)
             {
-                situaCoordenada(this->posicionX, this->posicionY);
-                Coche::borraCoche();
-                this->posicionX = this->posicionX - 11;
-                Coche::dibujaCoche(this->posicionX, this->posicionY);
-            }
-            break;
-        }
-        case 'd':
-        {
-            if (this->posicionX < 11)
+            case 'a':
             {
-                situaCoordenada(this->posicionX, this->posicionY);
-                Coche::borraCoche();
-                this->posicionX = this->posicionX + 11;
-                Coche::dibujaCoche(this->posicionX, this->posicionY);
+                if (this->posicionX > 1)
+                {
+                    situaCoordenada(this->posicionX, this->posicionY);
+                    Coche::borraCoche();
+                    this->posicionX = this->posicionX - 11;
+                    Coche::dibujaCoche(this->posicionX, this->posicionY);
+                }
+                break;
             }
-            break;
-        }
-        case Izquierda:
-        {
-            if (this->posicionX > 1)
+            case 'd':
             {
-                situaCoordenada(this->posicionX, this->posicionY);
-                Coche::borraCoche();
-                this->posicionX--;
-                Coche::dibujaCoche(this->posicionX, this->posicionY);
+                if (this->posicionX < 11)
+                {
+                    situaCoordenada(this->posicionX, this->posicionY);
+                    Coche::borraCoche();
+                    this->posicionX = this->posicionX + 11;
+                    Coche::dibujaCoche(this->posicionX, this->posicionY);
+                }
+                break;
             }
-            break;
-        }
-        case Derecha:
-        {
-            if (this->posicionX < 13)
+            case Izquierda:
             {
-                situaCoordenada(this->posicionX, this->posicionY);
-                Coche::borraCoche();
-                this->posicionX++;
-                Coche::dibujaCoche(this->posicionX, this->posicionY);
+                if (this->posicionX > 1)
+                {
+                    situaCoordenada(this->posicionX, this->posicionY);
+                    Coche::borraCoche();
+                    this->posicionX--;
+                    Coche::dibujaCoche(this->posicionX, this->posicionY);
+                }
+                break;
             }
-            break;
-        }
-        case 'f':
-        {
-            Coche::explotaCoche();
-            break;
-        }
-        default:
-        {
-            Coche::situaCoordenada(this->posicionX, this->posicionY);
-            Coche::dibujaCoche(this->posicionX, this->posicionY);
-            break;
-        }
+            case Derecha:
+            {
+                if (this->posicionX < 13)
+                {
+                    situaCoordenada(this->posicionX, this->posicionY);
+                    Coche::borraCoche();
+                    this->posicionX++;
+                    Coche::dibujaCoche(this->posicionX, this->posicionY);
+                }
+                break;
+            }
+            case 'f':
+            {
+                Coche::explotaCoche();
+                break;
+            }
+            default:
+            {
+                Coche::situaCoordenada(this->posicionX, this->posicionY);
+                Coche::dibujaCoche(this->posicionX, this->posicionY);
+                break;
+            }
+                fflush(stdout); //Linea agregada 11/01/2019
+            }
         }
     }
 }
 
-class CocheEnemigo : public ControladorConsola
+class CocheEnemigo : public ContraladorConsola //Inicialmente se inicia en la parte superior de la pantalla
 {
-  private:
+  private: //Posición inicial x, y (1, 0) o (12, 0)
     int posicionX;
     int posicionY;
 
   public:
+    CocheEnemigo();
     void animaEnemigo();
+    void dibujaEnemigo();
+    void borraEnemigo();
 };
+CocheEnemigo::CocheEnemigo()
+{
+    //this->animaEnemigo();
+}
+void CocheEnemigo::dibujaEnemigo()
+{
+    this->situaCoordenada(this->posicionX, this->posicionY);
+    cout
+        << "()<"
+        << "[|]"
+        << ">()";
+    this->situaCoordenada(this->posicionX + 3, this->posicionY + 1);
+    cout << "|||";
+    this->situaCoordenada(this->posicionX, this->posicionY + 2);
+    cout
+        << "()<"
+        << "[|]"
+        << ">()";
+}
+
+void CocheEnemigo::borraEnemigo()
+{
+    CocheEnemigo::situaCoordenada(this->posicionX, this->posicionY);
+    cout << "         ";
+    CocheEnemigo::situaCoordenada(this->posicionX, this->posicionY + 1);
+    cout << "         ";
+    CocheEnemigo::situaCoordenada(this->posicionX, this->posicionY + 2);
+    cout << "         ";
+    CocheEnemigo::situaCoordenada(this->posicionX, this->posicionY + 3);
+    cout << "         ";
+}
 
 void CocheEnemigo::animaEnemigo()
 {
+
+    while (true)
+    {
+        srand(time(NULL));                //Randomize seed initialization
+        int posicionEnemigo = rand() % 2; // Generate a random number between 0 and 1
+
+        if (posicionEnemigo == 0)
+        { // El enemigo desciende desde la izquierda
+
+            this->posicionX = 1;
+            this->posicionY = 0;
+            for (int y = this->posicionY; y <= 9; y++)
+            {
+                this->borraEnemigo();
+                this->situaCoordenada(this->posicionX, this->posicionY = y);
+                this->dibujaEnemigo();
+                Sleep(100); // Velocidad
+
+                if (y == 9) //Borra enemigo al llegar en la posicion y = 12
+                {
+                    this->situaCoordenada(this->posicionX, this->posicionY);
+                    this->borraEnemigo();
+                }
+                fflush(stdout);
+            }
+        }
+
+        else
+        { // El enemigo desciendde desde la derecha
+            this->posicionX = 12;
+            this->posicionY = 0;
+            for (int y = this->posicionY; y <= 9; y++)
+            {
+                this->borraEnemigo();
+                this->situaCoordenada(this->posicionX, this->posicionY = y);
+                this->dibujaEnemigo();
+                Sleep(100); // Velocidad
+
+                if (y == 9) //Borra enemigo al llegar en la posicion y = 12
+                {
+                    this->situaCoordenada(this->posicionX, this->posicionY);
+                    this->borraEnemigo();
+                }
+                fflush(stdout);
+            }
+        }
+        fflush(stdout);
+    }
 }
 
 int main()
 {
     // (x-largo, y-ancho)
     bool gameOver = false;
-    Escenario escena(22, 12);
-    escena.dibujaEscenario();
-    escena.OcultaCursor();
-    Coche coche(12, 9); // alternar coordenada x
+    //Escenario escena(22, 12);
+    //escena.dibujaEscenario();
+    //escena.OcultaCursor();
+    //Coche coche(12, 9); // alternar coordenada x
+    //CocheEnemigo enemigo;
 
-    while (gameOver == false)
+    Escenario *esc = new Escenario(22, 12);
+    CocheEnemigo *enem = new CocheEnemigo();
+    Coche *cochePtr = new Coche(12, 9);
+    std::thread t1(&Escenario::animaEscenario, esc);
+    //std::thread t2(&CocheEnemigo::animaEnemigo, enem);
+    //std::thread t3(&Coche::moverCoche, cochePtr);
+
+    t1.join();
+    //t2.join();
+    //t3.join();
+
+    /*while (gameOver == false)
     {
-        coche.moverCoche();
-        Sleep(10);
         escena.animaEscenario();
-    }
+        enemigo.animaEnemigo();
+        coche.moverCoche();
+
+        Sleep(10);
+    }*/
 
     cin.get();
     return 0;
